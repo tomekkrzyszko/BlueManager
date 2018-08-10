@@ -3,9 +3,10 @@ package pl.tomekkrzyszko.bluemanager;
 import android.app.Application;
 import android.content.Context;
 
-import dagger.component.AppComponent;
-import dagger.component.DaggerAppComponent;
-import dagger.module.AppModule;
+import pl.tomek_krzyszko.bluemanager.BlueConfig;
+import pl.tomekkrzyszko.bluemanager.dagger.component.AppComponent;
+import pl.tomekkrzyszko.bluemanager.dagger.component.DaggerAppComponent;
+import pl.tomekkrzyszko.bluemanager.dagger.module.AppModule;
 
 
 public class BlueManagerApplication extends Application {
@@ -20,7 +21,7 @@ public class BlueManagerApplication extends Application {
                 .appModule(new AppModule(this))
                 .build();
 
-
+        appComponent.blueManager().initilize(this,new BlueConfig());
     }
 
     public static AppComponent getComponent(Context context) {
