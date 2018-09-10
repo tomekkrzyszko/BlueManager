@@ -13,7 +13,7 @@ public interface BlueDeviceScanListener {
      *
      * @param blueDevice cumulative data package with discovered device
      */
-    void onDeviceDiscovered(BlueDevice blueDevice);
+    void onDeviceFound(BlueDevice blueDevice);
 
     /**
      * Called when bluetooth device was discovered earlier and it couldn't be found anymore

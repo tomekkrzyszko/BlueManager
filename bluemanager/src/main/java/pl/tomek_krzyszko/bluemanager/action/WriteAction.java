@@ -11,6 +11,11 @@ public class WriteAction extends BlueAction {
         this.value = value;
     }
 
+    public WriteAction(byte[] value) {
+        super();
+        this.value = value;
+    }
+
     public byte[] getValue() {
         return value;
     }

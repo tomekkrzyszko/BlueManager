@@ -29,7 +29,7 @@ public class BlueManagerModule {
         if(blueConfig != null) {
             return blueConfig;
         }else{
-            return new BlueConfig();
+            return BlueConfig.builder().build();
         }
     }
 }

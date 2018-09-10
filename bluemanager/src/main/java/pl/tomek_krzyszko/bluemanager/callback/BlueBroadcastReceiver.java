@@ -5,46 +5,47 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import pl.tomek_krzyszko.bluemanager.BlueConfig;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
-import pl.tomek_krzyszko.bluemanager.scanner.BlueScanner;
+import timber.log.Timber;
 
 
 public abstract class BlueBroadcastReceiver extends BroadcastReceiver implements BlueDeviceScanListener {
 
     public static IntentFilter getIntentFilter() {
-        return new IntentFilter(BlueScanner.ACTION_TERMA);
+        return new IntentFilter(BlueConfig.BLUE_BROADCAST_ACTION);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        BlueDevice blueDevice = (BlueDevice) intent.getSerializableExtra(BlueScanner.EXTRA_VALUE);
-        int extraType = intent.getIntExtra(BlueScanner.EXTRA_TYPE, -1);
+        BlueDevice blueDevice = (BlueDevice) intent.getSerializableExtra(BlueConfig.BLUE_DEVICE_VALUE);
+        int extraType = intent.getIntExtra(BlueConfig.BLUE_SCAN_TYPE, -1);
         if (blueDevice != null) {
             switch (extraType) {
-                case BlueScanner.EXTRA_TYPE_DISCOVERED:
-                    onDeviceDiscovered(blueDevice);
+                case BlueConfig.BLUE_SCAN_DISCOVERED: {
+                    onDeviceFound(blueDevice);
                     break;
-                case BlueScanner.EXTRA_TYPE_UPDATED:
+                }
+                case BlueConfig.BLUE_SCAN_UPDATED: {
                     onDeviceUpdate(blueDevice);
                     break;
-                case BlueScanner.EXTRA_TYPE_LOST:
-                {
-                    onDeviceLost(blueDevice);
                 }
-
-                break;
+                case BlueConfig.BLUE_SCAN_LOST: {
+                    onDeviceLost(blueDevice);
+                    break;
+                }
                 default:
-                    //L.w(BlueBroadcastReceiver.this, "Unsupported EXTRA_TYPE = " + extraType);
+                    Timber.w("Unsupported EXTRA_TYPE = " + extraType);
                     break;
             }
         } else {
             switch (extraType) {
-                case BlueScanner.EXTRA_TYPE_ERROR:
-                    int errorCode = intent.getIntExtra(BlueScanner.EXTRA_ERROR_CODE, -1);
+                case BlueConfig.BLUE_SCAN_ERROR:
+                    int errorCode = intent.getIntExtra(BlueConfig.BLUE_SCAN_ERROR_CODE, -1);
                     onDeviceScanError(errorCode);
                     break;
                 default:
-                   // L.w(BlueBroadcastReceiver.this, "Intent EXTRA_VALUE = null && Unsupported EXTRA_TYPE = " + extraType);
+                    Timber.w("Intent EXTRA_VALUE = null && Unsupported EXTRA_TYPE = " + extraType);
                     break;
             }
         }

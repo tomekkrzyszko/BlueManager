@@ -14,11 +14,10 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pl.tomek_krzyszko.bluemanager.BlueManager;
-import pl.tomek_krzyszko.bluemanager.BlueScannerServiceConnection;
 import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener;
+import pl.tomek_krzyszko.bluemanager.callback.BlueScannerServiceConnection;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
 import pl.tomek_krzyszko.bluemanager.exception.BlueManagerExceptions;
-import pl.tomek_krzyszko.bluemanager.scanner.BlueScanner;
 import pl.tomekkrzyszko.bluemanager.dagger.module.MainModule;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     @Inject BlueManager blueManager;
 
     private String[] states = {"Disconnected","Connecting","Connected"};
-    private BlueScanner mBlueScanner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,14 +49,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        blueManager.stopService();
+        blueManager.stopBlueScanner();
         super.onDestroy();
     }
 
     private void startBluetoothService(){
         if(blueManager.checkBluetooth(this)) {
             try {
-                blueManager.startService(blueScannerServiceConnection);
+                blueManager.startBlueScanner(blueScannerServiceConnection);
             } catch (BlueManagerExceptions blueManagerExceptions) {
                 blueManagerExceptions.printStackTrace();
             }
@@ -69,9 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
     private BlueScannerServiceConnection blueScannerServiceConnection = new BlueScannerServiceConnection() {
         @Override
-        public void onConnected(BlueScanner blueScanner) {
+        public void onConnected() {
             Log.d("SERVICE","onConnected");
-            mBlueScanner = blueScanner;
             startScanning();
         }
 
@@ -87,9 +84,9 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
         }else{
             Log.d("MainActivity","StartScanning");
-           mBlueScanner.addBlueDeviceScanListener(new BlueDeviceScanListener() {
+           blueManager.addBlueDeviceScanListener(new BlueDeviceScanListener() {
                @Override
-               public void onDeviceDiscovered(BlueDevice blueDevice) {
+               public void onDeviceFound(BlueDevice blueDevice) {
                    Log.d("SCANNER","Discoverd: "+blueDevice.getAddress());
                }
 
@@ -108,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                    Log.d("SCANNER","Error: "+ errorCode);
                }
            });
-           mBlueScanner.start();
+           blueManager.startScanning(null,true);
         }
     }
 

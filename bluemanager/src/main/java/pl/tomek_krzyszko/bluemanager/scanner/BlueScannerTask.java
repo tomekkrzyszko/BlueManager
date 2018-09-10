@@ -8,15 +8,18 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.inject.Inject;
 
@@ -24,19 +27,15 @@ import pl.tomek_krzyszko.bluemanager.BlueConfig;
 import pl.tomek_krzyszko.bluemanager.BlueManager;
 import pl.tomek_krzyszko.bluemanager.dagger.modules.TaskModule;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
+import timber.log.Timber;
 
 public class BlueScannerTask implements Runnable {
 
     @Inject BlueConfig blueConfig;
-
     @Inject Context context;
-
-    /**
-     * Used in API level < 21 for scanning
-     * Used in all API levels for managing device's Bluetooth
-     */
     @Inject BluetoothAdapter bluetoothAdapter;
-
+    @Inject BluetoothLeScanner bluetoothLeScanner;
+    @Inject Timer timer;
     private BlueScanner blueScanner;
 
     /**
@@ -59,11 +58,6 @@ public class BlueScannerTask implements Runnable {
     private boolean isRunning = true;
 
     /**
-     * Used in API level >= 21 for scanning
-     */
-    private BluetoothLeScanner bluetoothLeScanner;
-
-    /**
      * Scan callback used in API level < 21.
      */
     private BluetoothAdapter.LeScanCallback legacyScanCallback;
@@ -73,12 +67,69 @@ public class BlueScannerTask implements Runnable {
      */
     private ScanCallback scanCallback;
 
+    /**
+     * Scanning time passed from {@link BlueScanner} for scanner
+     */
+    private Long scanningTime = null;
+
+    /**
+     * Bluetooth device MAC address passed from {@link BlueScanner} for scanner
+     */
+    private String address = null;
+
+    /**
+     * Whether or not the scanner is running for bluetooth low energy devices or not
+     */
+    private boolean isLowEnergy;
+
+
     public BlueScannerTask(BlueScanner blueScanner) {
         BlueManager.getInstance()
                     .getComponent()
                     .module(new TaskModule(blueScanner))
                     .inject(this);
         this.blueScanner = blueScanner;
+    }
+
+    public void setScanningTime(Long scanningTime) {
+        this.scanningTime = scanningTime;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setLowEnergy(boolean lowEnergy) {
+        isLowEnergy = lowEnergy;
+    }
+
+    /**
+     * Initializes scan callback used in Android devices with API level < 18.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void initClassicScanner() {
+        // Register for broadcasts when a device is discovered.
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        context.registerReceiver(mReceiver, filter);
+        initialized = true;
+    }
+
+    /**
+     * Starts Bluetooth Classic scanning on Android devices with API level < 18.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void startClassicScanning() {
+        bluetoothAdapter.startDiscovery();
+    }
+
+
+    /**
+     * Stops Bluetooth Classic scanning on Android devices with API level < 18.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void stopClassicScanning() {
+        bluetoothAdapter.cancelDiscovery();
+        context.unregisterReceiver(mReceiver);
     }
 
     /**
@@ -88,20 +139,15 @@ public class BlueScannerTask implements Runnable {
     private void initLegacyScanner() {
         isLegacy = true;
 
-        legacyScanCallback = new BluetoothAdapter.LeScanCallback() {
+        legacyScanCallback = (device, rssi, rawScanRecord) -> new AsyncTask<Void, Void, Void>() {
+
             @Override
-            public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] rawScanRecord) {
-                new AsyncTask<Void, Void, Void>() {
-
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        onScan(device, rssi);
-                        return null;
-                    }
-
-                }.execute();
+            protected Void doInBackground(Void... params) {
+                onScan(device, rssi);
+                return null;
             }
-        };
+
+        }.execute();
 
         initialized = true;
     }
@@ -133,7 +179,6 @@ public class BlueScannerTask implements Runnable {
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void initScanner() {
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         isLegacy = false;
 
         scanCallback = new ScanCallback() {
@@ -200,6 +245,20 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                // Discovery has found a device. Get the BluetoothDevice
+                // object and its info from the Intent.
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                onScan(device,0);
+            }
+        }
+    };
+
+
     /**
      * Used by both {@link BlueScannerTask#legacyScanCallback} and {@link BlueScannerTask#scanCallback}
      * to process scanned devices. Discovered device processing runs on a worker thread.
@@ -210,26 +269,26 @@ public class BlueScannerTask implements Runnable {
     private void onScan(BluetoothDevice device, int rssi) {
         long currentTimestamp = System.currentTimeMillis();
         if (device != null) {
-            //if (device.getAddress().contains("02:89")) {
-                String address = device.getAddress();
+                String macAddress = device.getAddress();
                 final BlueDevice blueDevice = new BlueDevice();
                 blueDevice.setAddress(device.getAddress());
                 blueDevice.setName(device.getName());
                 blueDevice.setDiscoveredTimestamp(currentTimestamp);
-                blueDevice.setDistance(rssi);
                 blueDevice.setBluetoothDevice(device);
-                if (!blueScanner.discoveredDevices.containsKey(address)) {
-                    blueScanner.onDiscovery(address, blueDevice, device);
+                if (!blueScanner.discoveredDevices.containsKey(macAddress)) {
+                    blueScanner.onDiscovery(macAddress, blueDevice);
                 } else {
-                    blueScanner.onUpdate(address, blueDevice, device);
+                    blueScanner.onUpdate(macAddress, blueDevice);
                 }
-           // }
+                if(address!=null && !address.isEmpty() && macAddress.equals(address)){
+                    stop();
+                }
         }
     }
 
     private void waitError() {
         try {
-            Thread.sleep(blueScanner.getSettings().getWaitPeriodAfterErrorMillis());
+            Thread.sleep(blueConfig.getWaitPeriodAfterErrorMillis());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -237,7 +296,7 @@ public class BlueScannerTask implements Runnable {
 
     private void waitActively() {
         try {
-            Thread.sleep(blueScanner.getSettings().getScanPeriodMillis());
+            Thread.sleep(blueConfig.getScanPeriodMillis());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -245,7 +304,7 @@ public class BlueScannerTask implements Runnable {
 
     private void waitPassively() {
         try {
-            Thread.sleep(blueScanner.getSettings().getWaitPeriodMillis());
+            Thread.sleep(blueConfig.getWaitPeriodMillis());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -259,51 +318,53 @@ public class BlueScannerTask implements Runnable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 // API changed in 5.0
                 initScanner();
-            } else {
+            }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 initLegacyScanner();
+            }else{
+                initClassicScanner();
             }
         } else {
-           // L.e(BlueScanner.class, "Bluetooth is not enabled");
+           Timber.e("Bluetooth is not enabled");
         }
     }
 
     @Override
     public void run() {
-        Log.d("TASK","run: "+ isRunning);
         while (isRunning) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                blueScanner.setSettings(BlueScannerSettings.getDefault());
-            } else {
-                blueScanner.setSettings(BlueScannerSettings.getDefaultLegacy());
-            }
-
             if (bluetoothAdapter.isEnabled()) {
-                Log.d("TASK","ENABLED");
                 if (!initialized) {
                     initialize();
                 }
-
-                if (!isLegacy) {
-                    stopScanning();
-                } else {
-                    stopLegacyScanning();
+                if(isLowEnergy) {
+                    if (!isLegacy) {
+                        stopScanning();
+                    } else {
+                        stopLegacyScanning();
+                    }
+                }else{
+                    stopClassicScanning();
                 }
-
-                blueScanner.monitorDiscoveredDevices();
+                blueScanner.checkBlueDevices();
                 waitPassively();
                 synchronized (this) {
                     if (isRunning) {
                         if(bluetoothAdapter.isEnabled()) {
-                            if (!isLegacy) {
-                                // isRunning flag could change while waiting
-                                startScanning();
-                            } else {
-                                startLegacyScanning();
+                            //Start scanning
+                            if(scanningTime!=null && scanningTime >0){
+                                startScaningTimer();
+                            }
+                            if(isLowEnergy) {
+                                if (!isLegacy) {
+                                    startScanning();
+                                } else {
+                                    startLegacyScanning();
+                                }
+                            }else{
+                                startClassicScanning();
                             }
                         }
                     }
                 }
-
                 waitActively();
             } else {
                 waitError();
@@ -311,30 +372,35 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
+    private void startScaningTimer(){
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                stop();
+            }
+        },scanningTime);
+    }
+
     public synchronized void stop() {
         isRunning = false;
         if (bluetoothAdapter.isEnabled()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 stopScanning();
-            } else {
+            }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 stopLegacyScanning();
+            }else{
+                stopClassicScanning();
             }
         }
     }
+
+
 
     public Set<BluetoothDevice> getBondedDevicesSet(){
         if(bluetoothAdapter.isEnabled()) {
             return bluetoothAdapter.getBondedDevices();
         }else{
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    public boolean isBluetoothLowEnergyEnabled(){
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            return true;
-        }else{
-            return false;
+            return  new HashSet<>();
         }
     }
 

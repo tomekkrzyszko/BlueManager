@@ -17,6 +17,9 @@ public abstract class BlueAction implements Serializable {
         this.characteristic = characteristic;
     }
 
+    public BlueAction() {
+    }
+
     public UUID getService() {
         return service;
     }

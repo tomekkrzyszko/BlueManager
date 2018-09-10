@@ -21,7 +21,11 @@ public class BlueManagerApplication extends Application {
                 .appModule(new AppModule(this))
                 .build();
 
-        appComponent.blueManager().initilize(this,new BlueConfig());
+        appComponent.blueManager().initilize(this,BlueConfig.builder().build());
+        BlueConfig.builder()
+                .setServiceDiscoveryTimeoutMillis(1000)
+                .setScanPeriodMillis(15000)
+                .build();
     }
 
     public static AppComponent getComponent(Context context) {

@@ -2,6 +2,7 @@ package pl.tomek_krzyszko.bluemanager.dagger.components;
 
 import dagger.Component;
 import pl.tomek_krzyszko.bluemanager.dagger.modules.BlueManagerModule;
+import pl.tomek_krzyszko.bluemanager.dagger.modules.DeviceModule;
 import pl.tomek_krzyszko.bluemanager.dagger.modules.ScannerModule;
 import pl.tomek_krzyszko.bluemanager.dagger.modules.TaskModule;
 import pl.tomek_krzyszko.bluemanager.dagger.scopes.ApplicationScope;
@@ -10,5 +11,6 @@ import pl.tomek_krzyszko.bluemanager.dagger.scopes.ApplicationScope;
 @Component(modules = BlueManagerModule.class)
 public interface BlueManagerComponent {
     ScannerComponent module(ScannerModule scannerModule);
-    TaskComponent module(TaskModule scannerModule);
+    TaskComponent module(TaskModule taskModule);
+    DeviceComponent module(DeviceModule deviceModule);
 }

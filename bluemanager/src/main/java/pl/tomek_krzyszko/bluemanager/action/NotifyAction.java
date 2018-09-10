@@ -8,6 +8,10 @@ public class NotifyAction extends BlueAction {
         super(service, characteristic);
     }
 
+    public NotifyAction() {
+        super();
+    }
+
     @Override
     public ActionType getActionType() {
         return ActionType.NOTIFY;

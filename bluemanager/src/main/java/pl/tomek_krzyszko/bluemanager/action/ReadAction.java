@@ -8,6 +8,10 @@ public class ReadAction extends BlueAction {
         super(service, characteristic);
     }
 
+    public ReadAction() {
+        super();
+    }
+
     @Override
     public ActionType getActionType() {
         return ActionType.READ;

@@ -1,6 +1,6 @@
 package pl.tomek_krzyszko.bluemanager.dagger.modules;
 
-import android.os.Build;
+import android.os.Handler;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,8 +12,8 @@ import dagger.Provides;
 import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener;
 import pl.tomek_krzyszko.bluemanager.dagger.scopes.InstanceScope;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
+import pl.tomek_krzyszko.bluemanager.device.BlueDeviceController;
 import pl.tomek_krzyszko.bluemanager.scanner.BlueScanner;
-import pl.tomek_krzyszko.bluemanager.scanner.BlueScannerSettings;
 import pl.tomek_krzyszko.bluemanager.scanner.BlueScannerTask;
 
 @Module
@@ -25,16 +25,9 @@ public class ScannerModule {
         this.blueScanner = blueScanner;
     }
 
-    @InstanceScope
-    @Provides
-    public BlueScannerSettings provideBlueScannerSettings() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return BlueScannerSettings.getDefault();
-        } else {
-            return BlueScannerSettings.getDefaultLegacy();
-        }
-    }
-
+    /**
+     * Task run on a worker thread. The task consists of cyclic bluetooth scanning.
+     */
     @InstanceScope
     @Provides
     public BlueScannerTask provideBlueScannerTask(){
@@ -43,13 +36,30 @@ public class ScannerModule {
 
     @InstanceScope
     @Provides
-    public Set<BlueDeviceScanListener> provideBlueDeviceScanListeners(){
-        return new HashSet<>();
+    public Handler provideHandler(){
+        return new Handler();
     }
 
     @InstanceScope
     @Provides
-    public Map<String, BlueDevice> provideConnectedDevices(){
+    public Set<BlueDeviceScanListener> provideBlueDeviceScanListeners(){
+        return new HashSet<>();
+    }
+
+    /**
+     * Mapping between hardware address and {@link BlueDevice}.
+     * {@link BlueDevice} is a model class representing devices discovered in a nearby location.
+     */
+    @InstanceScope
+    @Provides
+    public Map<String, BlueDevice> provideDiscoveredDevices(){
         return new HashMap<>();
+    }
+
+
+    @InstanceScope
+    @Provides
+    public BlueDeviceController provideBlueDeviceController(){
+        return new BlueDeviceController(blueScanner);
     }
 }
