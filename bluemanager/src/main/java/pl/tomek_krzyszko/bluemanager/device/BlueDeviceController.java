@@ -103,7 +103,7 @@ public class BlueDeviceController {
                 try {
                     blueDevice.getOutputStream().write(((WriteAction) blueAction).getValue());
                     // Share the sent message with the UI activity.
-                    blueDeviceActionListener.onActionSuccess(BlueDeviceController.this,blueAction,((WriteAction) blueAction).getValue());
+                    blueDeviceActionListener.onActionSuccess(blueDevice,blueAction,((WriteAction) blueAction).getValue());
                 } catch (IOException e) {
                     Timber.e("Error occurred when sending data");
                 }
@@ -118,9 +118,9 @@ public class BlueDeviceController {
                         try {
                             // Read from the InputStream.
                             numBytes = blueDevice.getInputStream().read(mmBuffer);
-                            blueDeviceActionListener.onActionSuccess(BlueDeviceController.this,blueAction,mmBuffer);
+                            blueDeviceActionListener.onActionSuccess(blueDevice,blueAction,mmBuffer);
                         } catch (IOException e) {
-                            blueDeviceActionListener.onActionFailure(BlueDeviceController.this,blueAction);
+                            blueDeviceActionListener.onActionFailure(blueDevice,blueAction);
                             Timber.e("Input stream was disconnected");
                             break;
                         }
@@ -129,11 +129,11 @@ public class BlueDeviceController {
                 }).start();
                 return true;
             }else{
-                blueDeviceActionListener.onActionFailure(BlueDeviceController.this,blueAction);
+                blueDeviceActionListener.onActionFailure(blueDevice,blueAction);
                 return false;
             }
         }else{
-            blueDeviceActionListener.onActionFailure(BlueDeviceController.this,blueAction);
+            blueDeviceActionListener.onActionFailure(blueDevice,blueAction);
             return false;
         }
     }
@@ -174,7 +174,7 @@ public class BlueDeviceController {
                     // cleared before callback to be able to perform another action right after current one
                     blueDevice.setCurrentAction(null);
                     if (blueDeviceActionListener != null) {
-                        blueDeviceActionListener.onActionFailure(BlueDeviceController.this, completedAction);
+                        blueDeviceActionListener.onActionFailure(blueDevice, completedAction);
                     }
                 }
                 if (blueDeviceConnectionListener != null) {
@@ -237,7 +237,7 @@ public class BlueDeviceController {
                         // cleared before callback to be able to perform another action right after current one
 
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionSuccess(BlueDeviceController.this, completedAction,descriptor.getValue());
+                            blueDeviceActionListener.onActionSuccess(blueDevice, completedAction,descriptor.getValue());
                         }
 
                     } else {
@@ -245,7 +245,7 @@ public class BlueDeviceController {
                         // cleared before callback to be able to perform another action right after current one
                         blueDevice.setCurrentAction(null);
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionFailure(BlueDeviceController.this, completedAction);
+                            blueDeviceActionListener.onActionFailure(blueDevice, completedAction);
                         }
                     }
                 }
@@ -260,7 +260,7 @@ public class BlueDeviceController {
                     // cleared before callback to be able to perform another action right after current one
                     blueDevice.setCurrentAction(null);
                     if (blueDeviceActionListener != null) {
-                        blueDeviceActionListener.onActionSuccess(BlueDeviceController.this, completedAction, characteristic.getValue());
+                        blueDeviceActionListener.onActionSuccess(blueDevice, completedAction, characteristic.getValue());
                     }
                 }
             }
@@ -274,11 +274,11 @@ public class BlueDeviceController {
                     blueDevice.setCurrentAction(null);
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionSuccess(BlueDeviceController.this, completedAction, characteristic.getValue());
+                            blueDeviceActionListener.onActionSuccess(blueDevice, completedAction, characteristic.getValue());
                         }
                     } else {
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionFailure(BlueDeviceController.this, completedAction);
+                            blueDeviceActionListener.onActionFailure(blueDevice, completedAction);
                         }
                     }
                 }
@@ -292,7 +292,7 @@ public class BlueDeviceController {
                         // cleared before callback to be able to perform another action right after current one
                         blueDevice.setCurrentAction(null);
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionSuccess(BlueDeviceController.this, completedAction, ((WriteAction) completedAction).getValue());
+                            blueDeviceActionListener.onActionSuccess(blueDevice, completedAction, ((WriteAction) completedAction).getValue());
                         }
 
                     } else {
@@ -300,7 +300,7 @@ public class BlueDeviceController {
                         // cleared before callback to be able to perform another action right after current one
                         blueDevice.setCurrentAction(null);
                         if (blueDeviceActionListener != null) {
-                            blueDeviceActionListener.onActionFailure(BlueDeviceController.this, completedAction);
+                            blueDeviceActionListener.onActionFailure(blueDevice, completedAction);
                         }
                     }
                 }
