@@ -1,0 +1,10 @@
+pl.tomek_krzyszko.bluemanager
+pl.tomek_krzyszko.bluemanager.action
+pl.tomek_krzyszko.bluemanager.callback
+pl.tomek_krzyszko.bluemanager.dagger
+pl.tomek_krzyszko.bluemanager.dagger.components
+pl.tomek_krzyszko.bluemanager.dagger.modules
+pl.tomek_krzyszko.bluemanager.dagger.scopes
+pl.tomek_krzyszko.bluemanager.device
+pl.tomek_krzyszko.bluemanager.exception
+pl.tomek_krzyszko.bluemanager.scanner
