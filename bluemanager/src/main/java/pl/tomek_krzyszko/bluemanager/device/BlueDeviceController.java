@@ -150,7 +150,7 @@ public class BlueDeviceController {
         return false;
     }
 
-    public void open(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener) {
+    public void connectDevice(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && blueDevice.isBLEDevice()){
             connectBluetoothLowEnergyDevice(blueDevice,blueDeviceConnectionListener);
         }else{
@@ -327,14 +327,14 @@ public class BlueDeviceController {
                 blueDevice.getBluetoothSocket().connect();
                 blueDeviceConnectionListener.onDeviceReady(blueDevice);
             } catch (IOException connectException) {
-                // Unable to connect; close the socket.
+                // Unable to connect; disconnect the socket.
                 blueDeviceConnectionListener.onDeviceClosed(blueDevice);
-                close(blueDevice);
+                disconnect(blueDevice);
             }
         }
     }
 
-    public void close(BlueDevice blueDevice) {
+    public void disconnect(BlueDevice blueDevice) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && blueDevice.isBLEDevice()){
             BluetoothGatt bluetoothGatt = blueDevice.getBluetoothGatt();
             if (bluetoothGatt != null) {
@@ -346,7 +346,7 @@ public class BlueDeviceController {
                 blueDevice.getBluetoothSocket().close();
                 blueDevice.setBluetoothSocket(null);
             } catch (IOException e) {
-                Timber.e("Could not close the client socket");
+                Timber.e("Could not disconnect the client socket");
             }
         }
     }

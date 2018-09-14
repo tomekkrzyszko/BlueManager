@@ -3,6 +3,8 @@ package pl.tomek_krzyszko.bluemanager;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +20,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import pl.tomek_krzyszko.bluemanager.action.BlueAction;
 import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceActionListener;
@@ -238,23 +241,64 @@ public class BlueManager{
     }
 
     /**
+     * Start bluetooth scanning process with default parameters.
+     * Remember to stop scanning when it will be not needed.
+     */
+    public void startScanning(boolean lowEnergy){
+        if (blueScanner != null) {
+            blueScanner.startScan(null,null,null,null,null,lowEnergy);
+        }
+    }
+
+    /**
      * Start bluetooth scanning process.
      * @param address {@link String} in format XX:XX:XX:XX:XX:XX
      * If address is not null, scanning process will be working until given device will be found.
+     * @param scanSettings settings with scanning type
+     * @param scanFilters for scanner which set conditions for scanning
+     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
      */
-    public void startScanning(String address,boolean lowEnergy){
+    public void startScanning(String address, ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy){
         if (blueScanner != null) {
-            blueScanner.startScan(address,lowEnergy);
+            blueScanner.startScan(address,null,null,scanSettings,scanFilters,lowEnergy);
+        }
+    }
+
+    /**
+     * Start bluetooth scanning process.
+     * @param address {@link String} in format XX:XX:XX:XX:XX:XX
+     * If address is not null, scanning process will be working until given device will be found.
+     * @param uuids array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
+     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     */
+    public void startScanning(String address, UUID[] uuids, boolean lowEnergy){
+        if (blueScanner != null) {
+            blueScanner.startScan(address,null,uuids,null,null,lowEnergy);
         }
     }
 
     /**
      * Start bluetooth scanning process for specific amount of time
      * @param time in milliseconds
+     * @param scanSettings settings with scanning type
+     * @param scanFilters for scanner which set conditions for scanning
+     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
      */
-    public void startScanning(long time,boolean lowEnergy){
+    public void startScanning(long time, ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy){
         if (blueScanner != null) {
-            blueScanner.startScan(time,lowEnergy);
+            blueScanner.startScan(null,time,null,scanSettings,scanFilters,lowEnergy);
+        }
+    }
+
+    /**
+     * Start bluetooth scanning process for specific amount of time
+     * @param time in milliseconds
+     * @param uuids array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
+     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     */
+    public void startScanning(long time, UUID[] uuids, boolean lowEnergy){
+        if (blueScanner != null) {
+            blueScanner.startScan(null,time,uuids,null,null,lowEnergy);
         }
     }
 

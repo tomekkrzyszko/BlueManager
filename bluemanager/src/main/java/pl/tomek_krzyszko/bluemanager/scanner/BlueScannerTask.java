@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -82,6 +84,22 @@ public class BlueScannerTask implements Runnable {
      */
     private boolean isLowEnergy;
 
+    /**
+     * Array of service UUID which scanner should looking for in devices
+     * Scan method will return only this {@link BluetoothDevice}s which will have service {@link UUID} from that array
+     */
+    private UUID[] uuids;
+
+    /**
+     * Settings for {@link BluetoothLeScanner} scanner
+     */
+    private ScanSettings scanSettings;
+
+    /**
+     * List of filtering conditions for {@link BluetoothLeScanner} scanner
+     */
+    private List<ScanFilter> scanFilters;
+
 
     public BlueScannerTask(BlueScanner blueScanner) {
         BlueManager.getInstance()
@@ -101,6 +119,18 @@ public class BlueScannerTask implements Runnable {
 
     public void setLowEnergy(boolean lowEnergy) {
         isLowEnergy = lowEnergy;
+    }
+
+    public void setUuids(UUID[] uuids) {
+        this.uuids = uuids;
+    }
+
+    public void setScanSettings(ScanSettings scanSettings) {
+        this.scanSettings = scanSettings;
+    }
+
+    public void setScanFilters(List<ScanFilter> scanFilters) {
+        this.scanFilters = scanFilters;
     }
 
     /**
@@ -157,7 +187,7 @@ public class BlueScannerTask implements Runnable {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void startLegacyScanning() {
-        bluetoothAdapter.startLeScan(legacyScanCallback);
+        bluetoothAdapter.startLeScan(uuids,legacyScanCallback);
     }
 
     /**
@@ -223,9 +253,11 @@ public class BlueScannerTask implements Runnable {
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP | Build.VERSION_CODES.M)
     private void startScanning() {
-        ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
         if (bluetoothLeScanner != null) { //FIX crash #69 on Crashlitics
-            bluetoothLeScanner.startScan(null, settings, scanCallback);
+            if(scanSettings==null){
+                scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build();
+            }
+            bluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback);
         }
     }
 
@@ -294,22 +326,6 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
-    private void waitActively() {
-        try {
-            Thread.sleep(blueConfig.getScanPeriodMillis());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void waitPassively() {
-        try {
-            Thread.sleep(blueConfig.getWaitPeriodMillis());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Used to initialize internal Bluetooth scanner and scan callback.
      */
@@ -345,7 +361,6 @@ public class BlueScannerTask implements Runnable {
                     stopClassicScanning();
                 }
                 blueScanner.checkBlueDevices();
-                waitPassively();
                 synchronized (this) {
                     if (isRunning) {
                         if(bluetoothAdapter.isEnabled()) {
@@ -365,7 +380,6 @@ public class BlueScannerTask implements Runnable {
                         }
                     }
                 }
-                waitActively();
             } else {
                 waitError();
             }

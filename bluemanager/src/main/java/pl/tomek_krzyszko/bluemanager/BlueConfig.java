@@ -1,33 +1,65 @@
 package pl.tomek_krzyszko.bluemanager;
 
+import android.content.Intent;
+
 import com.google.auto.value.AutoValue;
 
 import java.util.UUID;
 
+import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
+
 @AutoValue
 public abstract class BlueConfig {
 
+    /**
+     * Broadcast action name for {@link android.content.IntentFilter#addAction(String)}
+     */
     public static final String BLUE_BROADCAST_ACTION = "blue_action";
 
+    /**
+     * Key for {@link Intent#getExtras()} scan type value
+     */
     public static final String BLUE_SCAN_TYPE = "blue_type";
+
+    /**
+     * Key for {@link Intent#getExtras()} device value
+     */
     public static final String BLUE_DEVICE_VALUE = "blue_value";
 
+    /**
+     * Value for {@link Intent#getExtras()} scanning key
+     * Represent {@link pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener#onDeviceFound(BlueDevice)}
+     */
     public static final int BLUE_SCAN_DISCOVERED = 0;
+
+    /**
+     * Value for {@link Intent#getExtras()} scanning key
+     * Represent {@link pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener#onDeviceUpdate(BlueDevice)}
+     */
     public static final int BLUE_SCAN_UPDATED = 1;
+
+    /**
+     * Value for {@link Intent#getExtras()} scanning key
+     * Represent {@link pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener#onDeviceLost(BlueDevice)}
+     */
     public static final int BLUE_SCAN_LOST = 2;
+
+    /**
+     * Value for {@link Intent#getExtras()} scanning key
+     * Represent {@link pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener#onDeviceScanError(int)}
+     */
     public static final int BLUE_SCAN_ERROR = 3;
 
+    /**
+     * Key for {@link Intent#getExtras()} scan status value
+     */
     public static final String BLUE_SCAN_ERROR_CODE = "extra_error_code";
 
     public static Builder builder() {
         return new AutoValue_BlueConfig.Builder()
                 .setShouldSendBroadcast(false)
-                .setScanPeriodMillis(15000)
-                .setWaitPeriodMillis(1000)
-                .setDiscoveryTimeoutMillis(1000)
-                .setScanPeriodMillisLegacy(25000)
-                .setWaitPeriodMillisLegacy(1500)
-                .setDiscoveryTimeoutMillisLegacy(1500)
+                .setAutoRestartService(false)
+                .setDiscoveryTimeoutMillis(5000)
                 .setWaitPeriodAfterErrorMillis(1000)
                 .setServiceDiscoveryTimeoutMillis(15000)
                 .setBufferSize(1024)
@@ -35,12 +67,8 @@ public abstract class BlueConfig {
     }
 
     public abstract boolean getShouldSendBroadcast();
-    public abstract long getScanPeriodMillis();
-    public abstract long getWaitPeriodMillis();
+    public abstract boolean getAutoRestartService();
     public abstract long getDiscoveryTimeoutMillis();
-    public abstract long getScanPeriodMillisLegacy();
-    public abstract long getWaitPeriodMillisLegacy();
-    public abstract long getDiscoveryTimeoutMillisLegacy();
     public abstract long getWaitPeriodAfterErrorMillis();
     public abstract long getServiceDiscoveryTimeoutMillis();
     public abstract int getBufferSize();
@@ -56,29 +84,15 @@ public abstract class BlueConfig {
         public abstract Builder setShouldSendBroadcast(boolean shouldSendBroadcast);
 
         /**
-         * Time in milliseconds when the scanner scan.
+         * Flag which enable {@link android.app.Service#START_STICKY} functionality
          */
-        public abstract Builder setScanPeriodMillis(long scanPeriodMillis);
-
-        /**
-         * Time in milliseconds when the scanner does not scan and waits with its worker thread being suspended
-         */
-        public abstract Builder setWaitPeriodMillis(long waitPeriodMillis);
-
+        public abstract Builder setAutoRestartService(boolean autoRestartService);
 
         /**
          * Time in milliseconds after which a {@link pl.tomek_krzyszko.bluemanager.device.BlueDevice} is being considered lost
          * when not detected again.
          */
         public abstract Builder setDiscoveryTimeoutMillis(long discoveryTimeoutMillis);
-
-        /**
-         * Periods for devices with API < 21 should probably be longer due to Bluetooth API being poorly implemented.
-         * Scanning may not be as fast as on Androids 5.0+
-         */
-        public abstract Builder setScanPeriodMillisLegacy(long scanPeriodMillisLegacy);
-        public abstract Builder setWaitPeriodMillisLegacy(long waitPeriodMillisLegacy);
-        public abstract Builder setDiscoveryTimeoutMillisLegacy(long discoveryTimeoutMillisLEgacy);
 
         /**
          * Time in milliseconds to wait if error occurs when trying to startScan the scan.

@@ -3,6 +3,8 @@ package pl.tomek_krzyszko.bluemanager.scanner;
 
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -16,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.inject.Inject;
@@ -70,6 +73,15 @@ public class BlueScanner extends Service {
                     .getComponent()
                     .module(new ScannerModule(this))
                     .inject(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if(blueConfig.getAutoRestartService()){
+            return START_STICKY;
+        }else{
+            return super.onStartCommand(intent, flags, startId);
+        }
     }
 
     @Override
@@ -227,7 +239,7 @@ public class BlueScanner extends Service {
             String address = blueDevice.getAddress();
             if (address != null && !connectedDevices.containsKey(address)) {
                 connectedDevices.put(address, blueDevice);
-                blueDeviceController.open(blueDevice, new BlueDeviceConnectionListener() {
+                blueDeviceController.connectDevice(blueDevice, new BlueDeviceConnectionListener() {
                     @Override
                     public void onDeviceReady(final BlueDevice blueDevice) {
                         if (blueDeviceConnectionListener != null) {
@@ -259,7 +271,7 @@ public class BlueScanner extends Service {
                     }
                 }
                 connectedDevices.remove(address);
-                blueDeviceController.close(blueDevice);
+                blueDeviceController.disconnect(blueDevice);
                 return true;
             }
         }
@@ -268,25 +280,30 @@ public class BlueScanner extends Service {
 
     public synchronized boolean disconnectAll() {
         for (BlueDevice blueDevice : connectedDevices.values()) {
-            blueDeviceController.close(blueDevice);
+            blueDeviceController.disconnect(blueDevice);
         }
         connectedDevices.clear();
         return true;
     }
 
-    public synchronized void startScan(String address,boolean lowEnergy) {
+    public synchronized void startScan(String address, Long time, UUID[] serviceUUIDs,ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy) {
         if(address!=null && !address.isEmpty()){
             blueScannerTask.setAddress(address);
         }
+        if(time!=null) {
+            blueScannerTask.setScanningTime(time);
+        }
         isLowEnergy = lowEnergy;
         blueScannerTask.setLowEnergy(lowEnergy);
-        new Thread(blueScannerTask).start();
-    }
-
-    public synchronized void startScan(long time,boolean lowEnergy) {
-        blueScannerTask.setScanningTime(time);
-        blueScannerTask.setLowEnergy(lowEnergy);
-        isLowEnergy = lowEnergy;
+        if(serviceUUIDs!=null) {
+            blueScannerTask.setUuids(serviceUUIDs);
+        }
+        if(scanFilters!=null) {
+            blueScannerTask.setScanFilters(scanFilters);
+        }
+        if(scanSettings!=null) {
+            blueScannerTask.setScanSettings(scanSettings);
+        }
         new Thread(blueScannerTask).start();
     }
 
