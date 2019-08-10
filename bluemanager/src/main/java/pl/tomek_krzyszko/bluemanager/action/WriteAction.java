@@ -2,6 +2,9 @@ package pl.tomek_krzyszko.bluemanager.action;
 
 import java.util.UUID;
 
+/**
+ * Specific class which implements Write Action
+ */
 public class WriteAction extends BlueAction {
 
     protected byte[] value;
@@ -16,10 +19,21 @@ public class WriteAction extends BlueAction {
         this.value = value;
     }
 
+    /**
+     * Specific class which implements Notify Action
+     *
+     *@return byte[] containing value of the characteristic
+     */
     public byte[] getValue() {
         return value;
     }
 
+
+    /**
+     * Specific class which implements Notify Action
+     *
+     *@param value of the characteristic
+     */
     public void setValue(byte[] value) {
         this.value = value;
     }

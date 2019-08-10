@@ -174,8 +174,8 @@ public class BlueScanner extends Service {
     /**
      * Code to run when a device present in {@link BlueScanner#discoveredDevices} collection has been updated
      *
-     * @param address          hardware address of the bluetooth device
-     * @param blueDevice {@link BlueDevice} object
+     * @param address MAC of the bluetooth device
+     * @param blueDevice {@link BlueDevice} object represents the device
      */
     void onUpdate(String address, final BlueDevice blueDevice) {
         synchronized (this) {
@@ -195,6 +195,11 @@ public class BlueScanner extends Service {
         }
     }
 
+    /**
+     * Code to run when scanning process failed
+     *
+     * @param errorCode which represents status of the error
+     */
     void onFailure(int errorCode) {
         Set<BlueDeviceScanListener> blueDeviceListenersCopy = new CopyOnWriteArraySet<>(blueDeviceScanListeners); //Prevent set from ConcurrentModificationException
         for (final BlueDeviceScanListener blueDeviceScanListener : blueDeviceListenersCopy) {
@@ -209,6 +214,10 @@ public class BlueScanner extends Service {
         }
     }
 
+    /**
+     * Code to run when the list of {@link BlueDevice} is checking to remove unseen devices
+     * This method based on the discoveryTimestamp configured in {@link BlueConfig} class
+     */
     public synchronized void checkBlueDevices() {
         Iterator<Map.Entry<String, BlueDevice>> iterator = discoveredDevices.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -220,9 +229,9 @@ public class BlueScanner extends Service {
                 // when the device is connected it does not send advertising data
                 iterator.remove();
                 final BlueDevice blueDevice = entry.getValue();
-                Set<BlueDeviceScanListener> wooletListenersCopy = new CopyOnWriteArraySet<>(blueDeviceScanListeners); //Prevent set from ConcurrentModificationException
-                for (final BlueDeviceScanListener wooletListener : wooletListenersCopy) {
-                    handler.post(() -> wooletListener.onDeviceLost(blueDevice));
+                Set<BlueDeviceScanListener> blueDeviceScanListenersCopy = new CopyOnWriteArraySet<>(blueDeviceScanListeners); //Prevent set from ConcurrentModificationException
+                for (final BlueDeviceScanListener blueDeviceScanListener : blueDeviceScanListenersCopy) {
+                    handler.post(() -> blueDeviceScanListener.onDeviceLost(blueDevice));
                 }
                 if (blueConfig.getShouldSendBroadcast()) {
                     Intent intent = new Intent(BlueConfig.BLUE_BROADCAST_ACTION);
@@ -234,6 +243,14 @@ public class BlueScanner extends Service {
         }
     }
 
+
+    /**
+     * Method responsible for starting connection process with scanned {@link BlueDevice}
+     * This code pass the connection process to {@link BlueDeviceController} instance and return proper information in callback methods
+     * @param blueDevice {@link BlueDevice} to which we want to connect
+     * @param blueDeviceConnectionListener {@link BlueDeviceConnectionListener} as a callback method for monitoring connection process
+     * @return true if process start properly, false when there is a problem with {@link BlueDevice}
+     */
     public synchronized boolean connectToDevice(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener) {
         if (blueDevice != null) {
             String address = blueDevice.getAddress();
@@ -260,6 +277,12 @@ public class BlueScanner extends Service {
         return false;
     }
 
+    /**
+     * Method responsible for stop connection process with connected {@link BlueDevice}
+     * This code disconnect from the device
+     * @param blueDevice {@link BlueDevice} with which we want to disconnect
+     * @return true if process start properly, false when there is a problem with {@link BlueDevice}
+     */
     public synchronized boolean disconnectFromDevice(BlueDevice blueDevice) {
         if (blueDevice != null) {
             String address = blueDevice.getAddress();
@@ -278,6 +301,10 @@ public class BlueScanner extends Service {
         return false;
     }
 
+
+    /**
+     * Method responsible for disconnect with all connected {@link BlueDevice}
+     */
     public synchronized boolean disconnectAll() {
         for (BlueDevice blueDevice : connectedDevices.values()) {
             blueDeviceController.disconnect(blueDevice);
@@ -286,6 +313,15 @@ public class BlueScanner extends Service {
         return true;
     }
 
+    /**
+     * Method repsonsible for starting scanninc process
+     * @param address MAC of the device we want to find
+     * @param time for how long we want to scan
+     * @param serviceUUIDs of the device which we want to find
+     * @param scanSettings proper scan settings for scanning process
+     * @param scanFilters extra scan filters
+     * @param lowEnergy information about type of the device we want to find
+     */
     public synchronized void startScan(String address, Long time, UUID[] serviceUUIDs,ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy) {
         if(address!=null && !address.isEmpty()){
             blueScannerTask.setAddress(address);
@@ -307,6 +343,10 @@ public class BlueScanner extends Service {
         new Thread(blueScannerTask).start();
     }
 
+    /**
+     * Method used to stop scanning process
+     * @param lowEnergy information about scanning type
+     */
     public synchronized void stopScan(boolean lowEnergy) {
         if (blueScannerTask != null) {
             blueScannerTask.setLowEnergy(lowEnergy);
@@ -317,10 +357,19 @@ public class BlueScanner extends Service {
         }
     }
 
+    /**
+     * Methof used to refresh internal cache
+     * @param blueDevice to get proper {@link android.bluetooth.BluetoothGatt}
+     * @return information about status of the method
+     */
     public boolean refreshDeviceCache(BlueDevice blueDevice) {
       return blueDeviceController.refreshDeviceCache(blueDevice.getBluetoothGatt());
     }
 
+    /**
+     * Method to get {@link Set} of the bonded device int the device memory
+     * @return set of the device
+     */
     public Set<BluetoothDevice> getBondedDevicesSet(){
         if(blueScannerTask!=null){
             return blueScannerTask.getBondedDevicesSet();
@@ -329,6 +378,15 @@ public class BlueScanner extends Service {
         }
     }
 
+
+    /**
+     * Method which perform action on the device
+     * This is only wrapper to use method from {@link BlueDeviceController} class
+     * @param blueDevice on which action should be done
+     * @param blueAction which we want to use
+     * @param blueDeviceActionListener as callback method to get information about performed action
+     * @return true if method successfully starts proper bluetooth process, false if device or action are wrong
+     */
     public boolean performAction(BlueDevice blueDevice, BlueAction blueAction, BlueDeviceActionListener blueDeviceActionListener){
         return blueDeviceController.performAction(blueDevice,blueAction,blueDeviceActionListener);
     }

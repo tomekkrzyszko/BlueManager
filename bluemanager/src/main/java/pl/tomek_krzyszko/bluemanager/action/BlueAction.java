@@ -3,8 +3,14 @@ package pl.tomek_krzyszko.bluemanager.action;
 import java.io.Serializable;
 import java.util.UUID;
 
+/**
+ * Abstract class which implements how all future action in library should look like and works.
+ */
 public abstract class BlueAction implements Serializable {
 
+    /**
+     * Enum type with all available actions
+     */
     public enum ActionType {
         READ, WRITE, NOTIFY
     }

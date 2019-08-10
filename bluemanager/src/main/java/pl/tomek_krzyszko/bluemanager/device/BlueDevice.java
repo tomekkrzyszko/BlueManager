@@ -13,6 +13,9 @@ import java.io.Serializable;
 
 import pl.tomek_krzyszko.bluemanager.action.BlueAction;
 
+/**
+ * Main data model class wich represent Bluetooth Device in the library
+ */
 public class BlueDevice implements Serializable {
 
     /**
@@ -135,10 +138,6 @@ public class BlueDevice implements Serializable {
         this.currentAction = currentAction;
     }
 
-    /**
-     * check if device support bluetooth low energy
-     * use bluetooth device type
-     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     public boolean isBLEDevice() {
         if(bluetoothDevice!=null){

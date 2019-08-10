@@ -32,6 +32,9 @@ import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceConnectionListener;
 import pl.tomek_krzyszko.bluemanager.dagger.modules.DeviceModule;
 import timber.log.Timber;
 
+/**
+ * Class which describe and control whole connection process with Bluetooth devices
+ */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BlueDeviceController {
 
@@ -41,6 +44,12 @@ public class BlueDeviceController {
     private Context context;
     private BlueDeviceActionListener blueDeviceActionListener;
 
+
+    /**
+     * Constructor of the {@link BlueDeviceController} class
+     *
+     * @param context {@link Context} of the application
+     */
     public BlueDeviceController(Context context) {
         BlueManager.getInstance()
                 .getComponent()
@@ -49,6 +58,14 @@ public class BlueDeviceController {
         this.context = context;
     }
 
+    /**
+     * Method which perform proper action on the Bluetooth device
+     *
+     * @param blueDevice {@link BlueDevice} on which the {@link BlueAction} will be performed
+     * @param blueAction {@link BlueAction} that will be performed
+     * @param blueDeviceActionListener {@link BlueDeviceActionListener} as a callback method to return information about the action
+     * @return true if method successfully starts proper bluetooth process, false if device or action are wrong
+     */
     public boolean performAction(BlueDevice blueDevice, BlueAction blueAction, BlueDeviceActionListener blueDeviceActionListener) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && blueDevice.isBLEDevice()){
            return performActionOnBluetoothLowEnergyDevice(blueDevice,blueAction,blueDeviceActionListener);
@@ -57,6 +74,14 @@ public class BlueDeviceController {
         }
     }
 
+    /**
+     * Specific wethod which perform proper action on the Bluetooth Low Energy device
+     *
+     * @param blueDevice {@link BlueDevice} on which the {@link BlueAction} will be performed
+     * @param blueAction {@link BlueAction} that will be performed
+     * @param blueDeviceActionListener {@link BlueDeviceActionListener} as a callback method to return information about the action
+     * @return true if method successfully starts proper bluetooth process, false if device or action are wrong
+     */
     public boolean performActionOnBluetoothLowEnergyDevice(BlueDevice blueDevice, BlueAction blueAction, BlueDeviceActionListener blueDeviceActionListener){
         BluetoothGatt bluetoothGatt = blueDevice.getBluetoothGatt();
         if (bluetoothGatt != null && blueDevice.getCurrentAction() == null) {
@@ -96,6 +121,14 @@ public class BlueDeviceController {
         return false;
     }
 
+    /**
+     * Specific method which perform proper action on the Bluetooth Classic device
+     *
+     * @param blueDevice {@link BlueDevice} on which the {@link BlueAction} will be performed
+     * @param blueAction {@link BlueAction} that will be performed
+     * @param blueDeviceActionListener {@link BlueDeviceActionListener} as a callback method to return information about the action
+     * @return true if method successfully starts proper bluetooth process, false if device or action are wrong
+     */
     public boolean performActionOnBluetoothDevice(BlueDevice blueDevice, BlueAction blueAction, BlueDeviceActionListener blueDeviceActionListener){
         if(blueDevice!=null && blueDevice.getBluetoothDevice()!=null && blueDevice.getBluetoothSocket()!=null && blueAction!=null){
             if (blueAction instanceof WriteAction) {
@@ -138,6 +171,12 @@ public class BlueDeviceController {
         }
     }
 
+    /**
+     * Method that cleans the internal database of scanned {@link BluetoothGattService}
+     *
+     * @param gatt {@link BluetoothGatt} of which we want to refresh internal cache
+     * @return true if method successfully cleans or false when it failed
+     */
     public boolean refreshDeviceCache(BluetoothGatt gatt) {
         try {
             Method localMethod = gatt.getClass().getMethod("refresh");
@@ -150,6 +189,12 @@ public class BlueDeviceController {
         return false;
     }
 
+    /**
+     * Method that is responsible for connecting to the Bluetooth Device
+     *
+     * @param blueDevice {@link BlueDevice} to which we want to connect
+     * @param blueDeviceConnectionListener {@link BlueDeviceConnectionListener} as a callback method to return information about connection process
+     */
     public void connectDevice(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && blueDevice.isBLEDevice()){
             connectBluetoothLowEnergyDevice(blueDevice,blueDeviceConnectionListener);
@@ -158,6 +203,12 @@ public class BlueDeviceController {
         }
     }
 
+    /**
+     * Specific method that is responsible for connecting to the Bluetooth Low Energy Device
+     *
+     * @param blueDevice {@link BlueDevice} to which we want to connect
+     * @param blueDeviceConnectionListener {@link BlueDeviceConnectionListener} as a callback method to return information about connection process
+     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void connectBluetoothLowEnergyDevice(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener){
         blueDevice.getBluetoothDevice().connectGatt(context, false, new BluetoothGattCallback() {
@@ -308,6 +359,12 @@ public class BlueDeviceController {
         });
     }
 
+    /**
+     * Specific method that is responsible for connecting to the Bluetooth Classic Device
+     *
+     * @param blueDevice {@link BlueDevice} to which we want to connect
+     * @param blueDeviceConnectionListener {@link BlueDeviceConnectionListener} as a callback method to return information about connection process
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void connectBluetoothDevice(BlueDevice blueDevice, final BlueDeviceConnectionListener blueDeviceConnectionListener){
         BluetoothSocket tmp = null;
@@ -334,6 +391,12 @@ public class BlueDeviceController {
         }
     }
 
+
+    /**
+     * Method that is responsible for disconnecting from the Bluetooth Device
+     *
+     * @param blueDevice {@link BlueDevice} with which we want to disconnect
+     */
     public void disconnect(BlueDevice blueDevice) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && blueDevice.isBLEDevice()){
             BluetoothGatt bluetoothGatt = blueDevice.getBluetoothGatt();

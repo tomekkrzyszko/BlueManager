@@ -10,12 +10,27 @@ import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
 import timber.log.Timber;
 
 
+/**
+ * Class responsible for {@link BroadcastReceiver} implementation in library
+ */
 public abstract class BlueBroadcastReceiver extends BroadcastReceiver implements BlueDeviceScanListener {
 
+    /**
+     * Method which return proper {@link IntentFilter}
+     *
+     * @return proper {@link IntentFilter} for {@link BroadcastReceiver}
+     */
     public static IntentFilter getIntentFilter() {
         return new IntentFilter(BlueConfig.BLUE_BROADCAST_ACTION);
     }
 
+
+    /**
+     * Method which implement {@link BroadcastReceiver} onReceive method
+     *
+     * @param context {@link Context} of the application,
+     * @param intent {@link Intent} which was handled by {@link BroadcastReceiver}
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         BlueDevice blueDevice = (BlueDevice) intent.getSerializableExtra(BlueConfig.BLUE_DEVICE_VALUE);
