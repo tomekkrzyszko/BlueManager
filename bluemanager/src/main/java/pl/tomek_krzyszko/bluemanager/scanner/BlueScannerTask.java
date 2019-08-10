@@ -277,7 +277,9 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
-    // Create a BroadcastReceiver for ACTION_FOUND.
+    /**
+     * Create a BroadcastReceiver for ACTION_FOUND.
+     */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -318,6 +320,9 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
+    /**
+     * Method which handles wait process after error
+     */
     private void waitError() {
         try {
             Thread.sleep(blueConfig.getWaitPeriodAfterErrorMillis());
@@ -366,7 +371,7 @@ public class BlueScannerTask implements Runnable {
                         if(bluetoothAdapter.isEnabled()) {
                             //Start scanning
                             if(scanningTime!=null && scanningTime >0){
-                                startScaningTimer();
+                                startScanningTimer();
                             }
                             if(isLowEnergy) {
                                 if (!isLegacy) {
@@ -386,7 +391,10 @@ public class BlueScannerTask implements Runnable {
         }
     }
 
-    private void startScaningTimer(){
+    /**
+     * Method which start scanning timer
+     */
+    private void startScanningTimer(){
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -395,6 +403,10 @@ public class BlueScannerTask implements Runnable {
         },scanningTime);
     }
 
+
+    /**
+     * Method which stops all scanning process
+     */
     public synchronized void stop() {
         isRunning = false;
         if (bluetoothAdapter.isEnabled()) {
@@ -409,7 +421,10 @@ public class BlueScannerTask implements Runnable {
     }
 
 
-
+    /**
+     * Method to get {@link Set} of the bonded device int the device memory
+     * @return set of the device
+     */
     public Set<BluetoothDevice> getBondedDevicesSet(){
         if(bluetoothAdapter.isEnabled()) {
             return bluetoothAdapter.getBondedDevices();
