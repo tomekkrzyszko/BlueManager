@@ -8,3 +8,7 @@ pl.tomek_krzyszko.bluemanager.dagger.scopes
 pl.tomek_krzyszko.bluemanager.device
 pl.tomek_krzyszko.bluemanager.exception
 pl.tomek_krzyszko.bluemanager.scanner
+pl.tomekkrzyszko.bluemanager
+pl.tomekkrzyszko.bluemanager.dagger.component
+pl.tomekkrzyszko.bluemanager.dagger.module
+pl.tomekkrzyszko.bluemanager.dagger.scope
