@@ -1,6 +1,7 @@
 package pl.tomek_krzyszko.bluemanager;
 
 import android.content.Intent;
+import android.support.annotation.Nullable;
 
 import com.google.auto.value.AutoValue;
 
@@ -63,6 +64,7 @@ public abstract class BlueConfig {
                 .setWaitPeriodAfterErrorMillis(1000)
                 .setServiceDiscoveryTimeoutMillis(15000)
                 .setBufferSize(1024)
+                .setBluetoothClassicServerUUID(UUID.randomUUID())
                 .setNotificationsEnablingDescriptorUUID(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
     }
 
@@ -118,6 +120,7 @@ public abstract class BlueConfig {
         /**
          * UUID for bluetooth classic service and connection process
          */
+        @Nullable
         public abstract Builder setBluetoothClassicServerUUID(UUID uuid);
 
         abstract BlueConfig autoBuild();

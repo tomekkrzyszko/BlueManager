@@ -24,7 +24,6 @@ public class BlueManagerApplication extends Application {
         appComponent.blueManager().initilize(this,BlueConfig.builder().build());
         BlueConfig.builder()
                 .setServiceDiscoveryTimeoutMillis(1000)
-                .setScanPeriodMillis(15000)
                 .build();
     }
 

@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                    Log.d("SCANNER","Error: "+ errorCode);
                }
            });
-           blueManager.startScanning(null,true);
+           blueManager.startScanning(true);
         }
     }
 
