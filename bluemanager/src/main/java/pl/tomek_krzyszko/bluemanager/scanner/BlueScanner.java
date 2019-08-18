@@ -348,7 +348,9 @@ public class BlueScanner extends Service {
         if(scanSettings!=null) {
             blueScannerTask.setScanSettings(scanSettings);
         }
-
+        if(timer==null){
+            timer = new Timer();
+        }
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -365,7 +367,10 @@ public class BlueScanner extends Service {
      */
     public synchronized void stopScan(boolean lowEnergy) {
         if (blueScannerTask != null) {
-            timer.cancel();
+            if(timer!=null) {
+                timer.cancel();
+            }
+            timer = null;
             blueScannerTask.setLowEnergy(lowEnergy);
             isLowEnergy = lowEnergy;
             blueScannerTask.stop();

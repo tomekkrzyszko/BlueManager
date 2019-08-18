@@ -22,9 +22,11 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.DeviceHo
     private List<BlueDevice> devices;
 
     private Context mContext;
+    private OnDeviceClickListener onDeviceClickListener;
 
-    public DevicesAdapter(Context context, Map<String, BlueDevice> devices) {
+    public DevicesAdapter(Context context, Map<String, BlueDevice> devices, OnDeviceClickListener onDeviceClickListener) {
         this.mContext = context;
+        this.onDeviceClickListener = onDeviceClickListener;
         updateDeviceList(devices);
     }
 
@@ -46,7 +48,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.DeviceHo
         holder.id.setText(String.valueOf(position));
         holder.name.setText(devices.get(position).getName());
         holder.address.setText(String.format(mContext.getString(R.string.device_address),devices.get(position).getAddress()));
-
+        holder.itemView.setOnClickListener(view -> onDeviceClickListener.onDeviceClicked(devices.get(position)));
     }
 
     @Override

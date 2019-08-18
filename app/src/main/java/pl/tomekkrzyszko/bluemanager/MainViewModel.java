@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import pl.tomek_krzyszko.bluemanager.BlueManager;
+import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceConnectionListener;
 import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener;
 import pl.tomek_krzyszko.bluemanager.callback.BlueScannerServiceConnection;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
@@ -19,6 +20,8 @@ public class MainViewModel extends ViewModel{
     private final MutableLiveData<BlueDevice> newDevice = new MutableLiveData<>();
     private final MutableLiveData<BlueDevice> updateDevice = new MutableLiveData<>();
     private final MutableLiveData<BlueDevice> removeDevice = new MutableLiveData<>();
+    private final MutableLiveData<BlueDevice> connectedDevice = new MutableLiveData<>();
+    private final MutableLiveData<BlueDevice> disconnectedDevice = new MutableLiveData<>();
     private final MutableLiveData<Boolean> bluetoothServiceStarted = new MutableLiveData<>();
 
     public MainViewModel(BlueManager blueManager) {
@@ -35,6 +38,14 @@ public class MainViewModel extends ViewModel{
 
     LiveData<BlueDevice> removeDevice() {
         return removeDevice;
+    }
+
+    LiveData<BlueDevice> connectedDevice() {
+        return connectedDevice;
+    }
+
+    LiveData<BlueDevice> disconnectedDevice() {
+        return disconnectedDevice;
     }
 
     LiveData<Boolean> bluetoothService() {
@@ -98,6 +109,29 @@ public class MainViewModel extends ViewModel{
 
     private void stopScanning(){
         blueManager.stopBlueScanner();
+    }
+
+
+    void connect(BlueDevice blueDevice){
+        blueManager.connectDevice(blueDevice, new BlueDeviceConnectionListener() {
+            @Override
+            public void onDeviceReady(BlueDevice blueDevice) {
+                Timber.d("Device connected");
+                connectedDevice.postValue(blueDevice);
+            }
+
+            @Override
+            public void onDeviceClosed(BlueDevice blueDevice) {
+                Timber.d("Device closed");
+                disconnectedDevice.postValue(blueDevice);
+                startScanning();
+            }
+        });
+    }
+
+    void disconnectDevice(BlueDevice blueDevice){
+        Timber.d("disconnect");
+        blueManager.disconnectFromDevice(blueDevice);
     }
 
     @Override
