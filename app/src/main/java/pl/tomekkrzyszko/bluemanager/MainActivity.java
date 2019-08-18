@@ -4,119 +4,102 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import pl.tomek_krzyszko.bluemanager.BlueManager;
-import pl.tomek_krzyszko.bluemanager.callback.BlueDeviceScanListener;
-import pl.tomek_krzyszko.bluemanager.callback.BlueScannerServiceConnection;
+import dagger.android.AndroidInjection;
 import pl.tomek_krzyszko.bluemanager.device.BlueDevice;
-import pl.tomek_krzyszko.bluemanager.exception.BlueManagerExceptions;
-import pl.tomekkrzyszko.bluemanager.dagger.module.MainModule;
+import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    @Inject ViewModelFactory viewModelFactory;
 
-    @BindView(R.id.image) ImageView image;
-    @BindView(R.id.title) TextView title;
-    @BindView(R.id.state) TextView state;
+    @BindView(R.id.image)
+    ImageView image;
+    @BindView(R.id.title)
+    TextView title;
+    @BindView(R.id.state)
+    TextView state;
+    @BindView(R.id.deviceList)
+    RecyclerView deviceRV;
 
-    @Inject BlueManager blueManager;
-
-    private String[] states = {"Disconnected","Connecting","Connected"};
+    private MainViewModel viewModel;
+    DevicesAdapter devicesAdapter;
+    private LinearLayoutManager linearLayoutManager;
+    private Map<String, BlueDevice> deviceList = new HashMap();
+    private String[] states = {"Rozłączony", "Łączenie", "Połączony"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        inject();
+        AndroidInjection.inject(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        startBluetoothService();
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
+        viewModel.addNewDevice().observe(this, this::processNewDevice);
+        viewModel.updateDevice().observe(this, this::processUpdatedDevice);
+        viewModel.removeDevice().observe(this, this::processLostDevice);
+        viewModel.bluetoothService().observe(this, this::processBluetoothServiceResponse);
+
+        devicesAdapter = new DevicesAdapter(this,deviceList);
+        linearLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL,false);
+        deviceRV.setAdapter(devicesAdapter);
+        deviceRV.setLayoutManager(linearLayoutManager);
+
+        viewModel.startBluetoothService(this);
     }
 
-    private void inject(){
-        BlueManagerApplication.get(this).getAppComponent()
-                .module(new MainModule())
-                .inject(this);
+    private void processNewDevice(BlueDevice blueDevices){
+        deviceList.put(blueDevices.getAddress(),blueDevices);
+        devicesAdapter.updateDeviceList(deviceList);
     }
 
-    @Override
-    protected void onDestroy() {
-        blueManager.stopBlueScanner();
-        super.onDestroy();
+    private void processUpdatedDevice(BlueDevice blueDevices){
+        deviceList.remove(blueDevices.getAddress());
+        deviceList.put(blueDevices.getAddress(),blueDevices);
+        devicesAdapter.updateDeviceList(deviceList);
     }
 
-    private void startBluetoothService(){
-        if(blueManager.checkBluetooth(this)) {
-            try {
-                blueManager.startBlueScanner(blueScannerServiceConnection);
-            } catch (BlueManagerExceptions blueManagerExceptions) {
-                blueManagerExceptions.printStackTrace();
+    private void processLostDevice(BlueDevice blueDevices){
+        deviceList.remove(blueDevices.getAddress());
+        devicesAdapter.updateDeviceList(deviceList);
+    }
+    private void processBluetoothServiceResponse(Boolean isStarted){
+        if(isStarted){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+            }else{
+                viewModel.startScanning();
             }
         }else{
-            Log.d("GRANT","BLUETOOTH NOT GRANTED");
+            Timber.d("Bluetooth Service disconnected");
         }
     }
 
-    private BlueScannerServiceConnection blueScannerServiceConnection = new BlueScannerServiceConnection() {
-        @Override
-        public void onConnected() {
-            Log.d("SERVICE","onConnected");
-            startScanning();
-        }
-
-        @Override
-        public void onDisconnected() {
-            Log.d("SERVICE","onDisconnected");
-        }
-    };
-
-    private void startScanning(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-        }else{
-            Log.d("MainActivity","StartScanning");
-           blueManager.addBlueDeviceScanListener(new BlueDeviceScanListener() {
-               @Override
-               public void onDeviceFound(BlueDevice blueDevice) {
-                   Log.d("SCANNER","Discoverd: "+blueDevice.getAddress());
-               }
-
-               @Override
-               public void onDeviceLost(BlueDevice blueDevice) {
-                   Log.d("SCANNER","Lost: "+ blueDevice.getAddress());
-               }
-
-               @Override
-               public void onDeviceUpdate(BlueDevice blueDevice) {
-                   Log.d("SCANNER","Update: "+ blueDevice.getAddress());
-               }
-
-               @Override
-               public void onDeviceScanError(int errorCode) {
-                   Log.d("SCANNER","Error: "+ errorCode);
-               }
-           });
-           blueManager.startScanning(true);
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_COARSE_LOCATION: {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Log.d("GRANT","LOCATION NOT GRANTED");
-                }else{
-                    startScanning();
+                    Timber.d("LOCATION NOT GRANTED");
+                } else {
+                    viewModel.startScanning();
                 }
             }
         }

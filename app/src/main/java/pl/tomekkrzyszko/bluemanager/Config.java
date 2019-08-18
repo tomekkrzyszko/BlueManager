@@ -2,7 +2,7 @@ package pl.tomekkrzyszko.bluemanager;
 
 import java.util.UUID;
 
-public class BlueConfig {
+public class Config {
 
         public static final UUID SHAPECARE_SERVICE_UUID = UUID.fromString("16156666-1211-1009-0807-060504030201");
         public static final UUID SHAPECARE_1_CHARACTERISTIC_UUID = UUID.fromString("16156667-1211-1009-0807-060504030201");

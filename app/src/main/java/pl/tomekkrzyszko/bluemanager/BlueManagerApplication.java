@@ -1,42 +1,38 @@
 package pl.tomekkrzyszko.bluemanager;
 
+import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 
+import javax.inject.Inject;
+
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasActivityInjector;
 import pl.tomek_krzyszko.bluemanager.BlueConfig;
-import pl.tomekkrzyszko.bluemanager.dagger.component.AppComponent;
-import pl.tomekkrzyszko.bluemanager.dagger.component.DaggerAppComponent;
-import pl.tomekkrzyszko.bluemanager.dagger.module.AppModule;
+import pl.tomek_krzyszko.bluemanager.BlueManager;
+import pl.tomekkrzyszko.bluemanager.dagger.DaggerAppComponent;
 
 
-public class BlueManagerApplication extends Application {
-    private AppComponent appComponent;
+public class BlueManagerApplication extends Application implements HasActivityInjector {
+    @Inject
+    DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
+    @Inject
+    BlueManager blueManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-
-        appComponent = DaggerAppComponent.builder()
-                .appModule(new AppModule(this))
-                .build();
-
-        appComponent.blueManager().initilize(this,BlueConfig.builder().build());
-        BlueConfig.builder()
-                .setServiceDiscoveryTimeoutMillis(1000)
-                .build();
+        DaggerAppComponent
+                .builder()
+                .application(this)
+                .build()
+                .inject(this);
+        blueManager.initilize(this, BlueConfig.builder().build());
     }
 
-    public static AppComponent getComponent(Context context) {
-        return ((BlueManagerApplication) context.getApplicationContext()).appComponent;
-    }
-
-    public static BlueManagerApplication get(Context context) {
-        return (BlueManagerApplication) context.getApplicationContext();
-    }
-
-    public AppComponent getAppComponent() {
-        return appComponent;
+    @Override
+    public AndroidInjector<Activity> activityInjector() {
+        return dispatchingAndroidInjector;
     }
 
 }

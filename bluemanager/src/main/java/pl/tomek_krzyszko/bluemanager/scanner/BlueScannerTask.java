@@ -52,12 +52,12 @@ public class BlueScannerTask implements Runnable {
      * Whether or not internal scanner object and its callback has been initialized.
      * Scanning cannot be started without initialization.
      */
-    private boolean initialized;
+    private boolean initialized=false;
 
     /**
      * Whether or not {@link BlueScanner}'s scanning worker thread is allowed to run.
      */
-    private boolean isRunning = true;
+    private boolean isRunning = false;
 
     /**
      * Scan callback used in API level < 21.
@@ -351,7 +351,7 @@ public class BlueScannerTask implements Runnable {
 
     @Override
     public void run() {
-        while (isRunning) {
+        while (!isRunning) {
             if (bluetoothAdapter.isEnabled()) {
                 if (!initialized) {
                     initialize();
@@ -367,9 +367,10 @@ public class BlueScannerTask implements Runnable {
                 }
                 blueScanner.checkBlueDevices();
                 synchronized (this) {
-                    if (isRunning) {
+                    if (!isRunning) {
                         if(bluetoothAdapter.isEnabled()) {
                             //Start scanning
+                            isRunning=true;
                             if(scanningTime!=null && scanningTime >0){
                                 startScanningTimer();
                             }

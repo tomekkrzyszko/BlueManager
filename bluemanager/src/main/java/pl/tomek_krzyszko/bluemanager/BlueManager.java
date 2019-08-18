@@ -13,7 +13,8 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;

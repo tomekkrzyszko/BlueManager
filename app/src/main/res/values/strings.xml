@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BlueManager</string>
+    <string name="device_address">Adres urzadzenia:\n%s</string>
 </resources>

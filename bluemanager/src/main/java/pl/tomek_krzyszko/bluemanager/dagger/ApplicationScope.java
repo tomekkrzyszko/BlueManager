@@ -1,7 +1,6 @@
 package pl.tomek_krzyszko.bluemanager.dagger;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 
 import pl.tomek_krzyszko.bluemanager.BlueConfig;
 import pl.tomek_krzyszko.bluemanager.dagger.components.BlueManagerComponent;
@@ -24,7 +23,6 @@ public class ApplicationScope {
         ApplicationScope.component = component;
     }
 
-    @VisibleForTesting
     public static void clearComponent() {
         component = null;
     }

@@ -9,7 +9,8 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -61,6 +64,11 @@ public class BlueScanner extends Service {
      * Whether or not the scanner is running for bluetooth low energy devices or not
      */
     private boolean isLowEnergy;
+
+    /**
+     * Internal timer for checkBlueDevice method
+     */
+    private Timer timer = new Timer();
 
     @Override
     public void onCreate() {
@@ -340,6 +348,14 @@ public class BlueScanner extends Service {
         if(scanSettings!=null) {
             blueScannerTask.setScanSettings(scanSettings);
         }
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                checkBlueDevices();
+            }
+        },blueConfig.getDiscoveryTimeoutMillis(), blueConfig.getDiscoveryTimeoutMillis());
+
         new Thread(blueScannerTask).start();
     }
 
@@ -349,6 +365,7 @@ public class BlueScanner extends Service {
      */
     public synchronized void stopScan(boolean lowEnergy) {
         if (blueScannerTask != null) {
+            timer.cancel();
             blueScannerTask.setLowEnergy(lowEnergy);
             isLowEnergy = lowEnergy;
             blueScannerTask.stop();
