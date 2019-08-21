@@ -115,11 +115,13 @@ public abstract class BlueConfig {
 
         /**
          * UUID of notification descriptor
+         * @param uuid {@link UUID}
          */
         public abstract Builder setNotificationsEnablingDescriptorUUID(UUID uuid);
 
         /**
          * UUID for bluetooth classic service and connection process
+         * @param uuid {@link UUID}
          */
         @Nullable
         public abstract Builder setBluetoothClassicServerUUID(UUID uuid);

@@ -6,6 +6,8 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothSocket;
 import android.os.Build;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,16 +32,19 @@ public class BlueDevice implements Serializable {
 
     /**
      * bluetooth server socket
+     * for BLE devices this is null
      */
     private BluetoothSocket bluetoothSocket;
 
     /**
-     * bluetooth input server
+     * bluetooth input stream from bluetooth socket
+     * oould be null when using BLE version
      */
     private InputStream inputStream;
 
     /**
-     * bluetooth output server
+     * bluetooth output stream from bluetooth socket
+     * oould be null when using BLE version
      */
     private OutputStream outputStream;
 
@@ -112,6 +117,7 @@ public class BlueDevice implements Serializable {
         this.bluetoothGatt = bluetoothGatt;
     }
 
+    @Nullable
     public BluetoothSocket getBluetoothSocket() {
         return bluetoothSocket;
     }
@@ -120,13 +126,21 @@ public class BlueDevice implements Serializable {
         this.bluetoothSocket = bluetoothSocket;
     }
 
+    @Nullable
     public InputStream getInputStream() throws IOException {
-        inputStream = bluetoothSocket.getInputStream();// null pointer
+        if(bluetoothSocket==null){
+            return null;
+        }
+        inputStream = bluetoothSocket.getInputStream();
         return inputStream;
     }
 
+    @Nullable
     public OutputStream getOutputStream() throws IOException {
-        outputStream = bluetoothSocket.getOutputStream();// null pointer
+        if(bluetoothSocket==null){
+            return null;
+        }
+        outputStream = bluetoothSocket.getOutputStream();
         return outputStream;
     }
 

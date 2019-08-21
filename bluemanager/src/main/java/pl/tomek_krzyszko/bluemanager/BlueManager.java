@@ -49,6 +49,7 @@ public class BlueManager{
 
     /**
      * Method which returns {@link BlueManager} instance.
+     * Implementation of Singleton pattern
      */
     public static BlueManager getInstance() {
         if (instance == null) {
@@ -93,6 +94,7 @@ public class BlueManager{
 
     /**
      *  Set {@link BlueScannerServiceConnection} instance.
+     * @param blueScannerServiceConnection {@link BlueScannerServiceConnection}
      */
     private void setBlueScannerServiceConnection(BlueScannerServiceConnection blueScannerServiceConnection) {
         this.blueScannerServiceConnection = blueScannerServiceConnection;
@@ -100,6 +102,7 @@ public class BlueManager{
 
     /**
      * Starts {@link BlueScanner} service. If the service is started already, it does nothing.
+     * @param blueScannerServiceConnection {@link BlueScannerServiceConnection}
      */
     public void startBlueScanner(BlueScannerServiceConnection blueScannerServiceConnection) throws BlueManagerExceptions {
         if(mContext!=null) {
@@ -253,6 +256,7 @@ public class BlueManager{
      * Start bluetooth scanning process.
      * @param address {@link String} in format XX:XX:XX:XX:XX:XX
      * If address is not null, scanning process will be working until given device will be found.
+     * If null or format is wrong, scanner will be working until {@link BlueManager#stopScanning(boolean)} method call
      * @param scanSettings {@link ScanSettings} settings with scanning type
      * @param scanFilters {@link ScanFilter} for scanner which set conditions for scanning
      * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
@@ -267,6 +271,7 @@ public class BlueManager{
      * Start bluetooth scanning process.
      * @param address {@link String} in format XX:XX:XX:XX:XX:XX
      * If address is not null, scanning process will be working until given device will be found.
+     * If null or format is wrong, scanner will be working until {@link BlueManager#stopScanning(boolean)} method call
      * @param uuids {@link UUID}array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
      * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
      */
@@ -404,7 +409,7 @@ public class BlueManager{
     /**
      * @param address hardware address of the device. If null it returns all nearby devices.
      * @return {@link List} containing all {@link BlueDevice}s currently considered to be nearby Android device.
-     * - it is present in {@link BlueScanner#discoveredDevices} collection.
+     * - it is present in {@link BlueScanner} collection.
      * Return empty list if the devices are not considered to be discovered.
      */
     public synchronized List<BlueDevice> getDiscoveredDevices(String address) {
@@ -424,6 +429,7 @@ public class BlueManager{
     /**
      * Method helps clearing device cache memory.
      * http://stackoverflow.com/questions/22596951/how-to-programmatically-force-bluetooth-low-energy-service-discovery-on-android
+     * @param blueDevice {@link BlueDevice}
      */
     public void refreshDeviceCache(BlueDevice blueDevice){
         if(blueScanner!=null){

@@ -41,7 +41,7 @@ import timber.log.Timber;
  * Class responsible for scanning for nearby devices.
  * Found devices are saved to internal collection.
  * If the device is not scanned for certain amount of time it is removed from the collection.
- * {@link BlueScanner} runs scanning and parsing tasks on its own threads.
+ * {@link BlueScanner} runs scanning and parsing tasks on its own threads of {@link BlueScannerTask}.
  */
 public class BlueScanner extends Service {
 
@@ -325,9 +325,9 @@ public class BlueScanner extends Service {
      * Method repsonsible for starting scanninc process
      * @param address MAC of the device we want to find
      * @param time for how long we want to scan
-     * @param serviceUUIDs of the device which we want to find
-     * @param scanSettings proper scan settings for scanning process
-     * @param scanFilters extra scan filters
+     * @param serviceUUIDs {@link UUID} of the device which we want to find
+     * @param scanSettings {@link ScanSettings} proper scan settings for scanning process
+     * @param scanFilters {@link ScanFilter} extra scan filters
      * @param lowEnergy information about type of the device we want to find
      */
     public synchronized void startScan(String address, Long time, UUID[] serviceUUIDs,ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy) {
@@ -404,9 +404,9 @@ public class BlueScanner extends Service {
     /**
      * Method which perform action on the device
      * This is only wrapper to use method from {@link BlueDeviceController} class
-     * @param blueDevice on which action should be done
-     * @param blueAction which we want to use
-     * @param blueDeviceActionListener as callback method to get information about performed action
+     * @param blueDevice {@link BlueDevice} on which action should be done
+     * @param blueAction {@link BlueAction} which we want to use
+     * @param blueDeviceActionListener {@link BlueDeviceActionListener} as callback method to get information about performed action
      * @return true if method successfully starts proper bluetooth process, false if device or action are wrong
      */
     public boolean performAction(BlueDevice blueDevice, BlueAction blueAction, BlueDeviceActionListener blueDeviceActionListener){
