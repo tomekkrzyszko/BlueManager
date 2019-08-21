@@ -61,7 +61,7 @@ public class BlueDevice implements Serializable {
     /**
      * time in milliseconds when the device was last scanned
      */
-    private long discoveredTimestamp;
+    private long discoveredTimestamp; // wytłumaczyć
 
     public BlueDevice() {
     }
@@ -121,12 +121,12 @@ public class BlueDevice implements Serializable {
     }
 
     public InputStream getInputStream() throws IOException {
-        inputStream = bluetoothSocket.getInputStream();
+        inputStream = bluetoothSocket.getInputStream();// null pointer
         return inputStream;
     }
 
     public OutputStream getOutputStream() throws IOException {
-        outputStream = bluetoothSocket.getOutputStream();
+        outputStream = bluetoothSocket.getOutputStream();// null pointer
         return outputStream;
     }
 

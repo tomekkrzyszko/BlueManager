@@ -73,30 +73,31 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     private void refreshDeviceList(){
         deviceList.clear();
-        devicesAdapter.updateDeviceList(deviceList);
+        devicesAdapter.updateDeviceList(deviceList,connectedDevice);
         swipeRefreshLayout.setRefreshing(false);
     }
 
     private void processNewDevice(BlueDevice blueDevices){
         deviceList.put(blueDevices.getAddress(),blueDevices);
-        devicesAdapter.updateDeviceList(deviceList);
+        devicesAdapter.updateDeviceList(deviceList,connectedDevice);
     }
 
     private void processUpdatedDevice(BlueDevice blueDevice){
         deviceList.remove(blueDevice.getAddress());
         deviceList.put(blueDevice.getAddress(),blueDevice);
-        devicesAdapter.updateDeviceList(deviceList);
+        devicesAdapter.updateDeviceList(deviceList,connectedDevice);
     }
 
     private void processLostDevice(BlueDevice blueDevice){
         deviceList.remove(blueDevice.getAddress());
-        devicesAdapter.updateDeviceList(deviceList);
+        devicesAdapter.updateDeviceList(deviceList,connectedDevice);
     }
 
     private void processConnectedDevice(BlueDevice blueDevice){
         connectedDevice = blueDevice;
         state.setText(states[2]);
         state.setTextColor(getResources().getColor(R.color.green));
+        devicesAdapter.updateDeviceList(deviceList,connectedDevice);
     }
 
     private void processDisconnectedDevice(BlueDevice blueDevice){
@@ -144,8 +145,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             if(connectedDevice.getAddress().equals(blueDevice.getAddress())){
                 state.setText(states[3]);
                 state.setTextColor(getResources().getColor(R.color.blue));
-                connectedDevice = null;
                 viewModel.disconnectDevice(connectedDevice);
+                connectedDevice = null;
             }
         }
     }

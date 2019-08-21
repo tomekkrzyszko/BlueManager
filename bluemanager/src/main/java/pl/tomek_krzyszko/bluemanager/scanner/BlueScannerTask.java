@@ -139,6 +139,7 @@ public class BlueScannerTask implements Runnable {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void initClassicScanner() {
         // Register for broadcasts when a device is discovered.
+        Timber.d("initClassicScanner");
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         context.registerReceiver(mReceiver, filter);
         initialized = true;
@@ -147,7 +148,6 @@ public class BlueScannerTask implements Runnable {
     /**
      * Starts Bluetooth Classic scanning on Android devices with API level < 18.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void startClassicScanning() {
         bluetoothAdapter.startDiscovery();
     }
@@ -156,7 +156,6 @@ public class BlueScannerTask implements Runnable {
     /**
      * Stops Bluetooth Classic scanning on Android devices with API level < 18.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void stopClassicScanning() {
         bluetoothAdapter.cancelDiscovery();
         context.unregisterReceiver(mReceiver);
@@ -266,6 +265,7 @@ public class BlueScannerTask implements Runnable {
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP | Build.VERSION_CODES.M)
     private void stopScanning() {
+        Timber.d("Stop Scanning");
         if (bluetoothLeScanner != null) {
             try { //sometimes throw npe from os.Parcel.eadException() - only try catch is a solution
                 bluetoothLeScanner.stopScan(scanCallback);
@@ -291,7 +291,6 @@ public class BlueScannerTask implements Runnable {
             }
         }
     };
-
 
     /**
      * Used by both {@link BlueScannerTask#legacyScanCallback} and {@link BlueScannerTask#scanCallback}
@@ -336,10 +335,10 @@ public class BlueScannerTask implements Runnable {
      */
     private void initialize() {
         if (bluetoothAdapter.isEnabled()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isLowEnergy) {
                 // API changed in 5.0
                 initScanner();
-            }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && isLowEnergy) {
                 initLegacyScanner();
             }else{
                 initClassicScanner();

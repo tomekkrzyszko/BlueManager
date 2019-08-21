@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,15 +24,19 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.DeviceHo
 
     private Context mContext;
     private OnDeviceClickListener onDeviceClickListener;
+    private String connectedDeviceMAC = null;
 
-    public DevicesAdapter(Context context, Map<String, BlueDevice> devices, OnDeviceClickListener onDeviceClickListener) {
+    DevicesAdapter(Context context, Map<String, BlueDevice> devices, OnDeviceClickListener onDeviceClickListener) {
         this.mContext = context;
         this.onDeviceClickListener = onDeviceClickListener;
-        updateDeviceList(devices);
+        updateDeviceList(devices,null);
     }
 
-    public void updateDeviceList(Map<String, BlueDevice> devices){
+    void updateDeviceList(Map<String, BlueDevice> devices, BlueDevice connectedDeviceMAC){
         this.devices = new ArrayList<>(devices.values());
+        if(connectedDeviceMAC!=null) {
+            this.connectedDeviceMAC = connectedDeviceMAC.getAddress();
+        }
         notifyDataSetChanged();
     }
 
@@ -49,6 +54,13 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.DeviceHo
         holder.name.setText(devices.get(position).getName());
         holder.address.setText(String.format(mContext.getString(R.string.device_address),devices.get(position).getAddress()));
         holder.itemView.setOnClickListener(view -> onDeviceClickListener.onDeviceClicked(devices.get(position)));
+        if(connectedDeviceMAC!=null){
+            if(connectedDeviceMAC.equals(devices.get(position).getAddress())){
+                holder.deviceContainer.setBackgroundColor(mContext.getResources().getColor(R.color.green));
+            }else{
+                holder.deviceContainer.setBackgroundColor(mContext.getResources().getColor(R.color.white));
+            }
+        }
     }
 
     @Override
@@ -61,8 +73,9 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.DeviceHo
         @BindView(R.id.device_id) TextView id;
         @BindView(R.id.device_name) TextView name;
         @BindView(R.id.device_address) TextView address;
+        @BindView(R.id.device_container) LinearLayout deviceContainer;
 
-        public DeviceHolder(View view) {
+        DeviceHolder(View view) {
             super(view);
             ButterKnife.bind(this,view);
         }

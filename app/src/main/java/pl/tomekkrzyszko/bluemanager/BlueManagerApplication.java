@@ -27,7 +27,7 @@ public class BlueManagerApplication extends Application implements HasActivityIn
                 .application(this)
                 .build()
                 .inject(this);
-        blueManager.initilize(this, BlueConfig.builder().build());
+        blueManager.initialize(this, BlueConfig.builder().build());
     }
 
     @Override

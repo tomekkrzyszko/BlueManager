@@ -57,10 +57,7 @@ public class BlueManager{
         return instance;
     }
 
-    /**
-     * Public constructor of the class.
-     */
-    public BlueManager() {
+    private BlueManager() {
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
@@ -79,7 +76,7 @@ public class BlueManager{
      * @param context {@link Context} used to initialize app context in library
      * @param blueConfig {@link BlueConfig} used to change default BlueManager configuration. If null, default config will be used.
      */
-    public void initilize(Context context, @Nullable BlueConfig blueConfig){
+    public void initialize(Context context, @Nullable BlueConfig blueConfig){
         this.mContext = context;
         this.component = ApplicationScope.getComponent(mContext,blueConfig);
     }
@@ -109,7 +106,7 @@ public class BlueManager{
             mContext.startService(getServiceIntent());
             connect(blueScannerServiceConnection);
         }else{
-            throw new BlueManagerExceptions("First initilize BlueManager.");
+            throw new BlueManagerExceptions("First initialize BlueManager.");
         }
     }
 
@@ -244,6 +241,7 @@ public class BlueManager{
     /**
      * Start bluetooth scanning process with default parameters.
      * Remember to stop scanning when it will be not needed.
+     * @param lowEnergy {@link Boolean} parameter which indicates Bluetooth version
      */
     public void startScanning(boolean lowEnergy){
         if (blueScanner != null) {
@@ -255,9 +253,9 @@ public class BlueManager{
      * Start bluetooth scanning process.
      * @param address {@link String} in format XX:XX:XX:XX:XX:XX
      * If address is not null, scanning process will be working until given device will be found.
-     * @param scanSettings settings with scanning type
-     * @param scanFilters for scanner which set conditions for scanning
-     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     * @param scanSettings {@link ScanSettings} settings with scanning type
+     * @param scanFilters {@link ScanFilter} for scanner which set conditions for scanning
+     * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
      */
     public void startScanning(String address, ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy){
         if (blueScanner != null) {
@@ -269,8 +267,8 @@ public class BlueManager{
      * Start bluetooth scanning process.
      * @param address {@link String} in format XX:XX:XX:XX:XX:XX
      * If address is not null, scanning process will be working until given device will be found.
-     * @param uuids array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
-     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     * @param uuids {@link UUID}array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
+     * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
      */
     public void startScanning(String address, UUID[] uuids, boolean lowEnergy){
         if (blueScanner != null) {
@@ -281,9 +279,9 @@ public class BlueManager{
     /**
      * Start bluetooth scanning process for specific amount of time
      * @param time in milliseconds
-     * @param scanSettings settings with scanning type
-     * @param scanFilters for scanner which set conditions for scanning
-     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     * @param scanSettings {@link ScanSettings} settings with scanning type
+     * @param scanFilters {@link ScanFilter} for scanner which set conditions for scanning
+     * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
      */
     public void startScanning(long time, ScanSettings scanSettings, List<ScanFilter> scanFilters, boolean lowEnergy){
         if (blueScanner != null) {
@@ -294,8 +292,8 @@ public class BlueManager{
     /**
      * Start bluetooth scanning process for specific amount of time
      * @param time in milliseconds
-     * @param uuids array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
-     * @param lowEnergy whether or not you will be using bluetooth low energy scanner
+     * @param uuids {@link UUID} array for scanner. Scan method will return only this {@link BlueDevice}s which will have service {@link UUID} from that array
+     * @param lowEnergy {@link Boolean} whether or not you will be using bluetooth low energy scanner
      */
     public void startScanning(long time, UUID[] uuids, boolean lowEnergy){
         if (blueScanner != null) {
@@ -313,9 +311,9 @@ public class BlueManager{
     }
 
     /**
-     * Used to force remove all {@link BlueDevice}s in {@link BlueScanner#discoveredDevices}
+     * Used to force remove all {@link BlueDevice}s in {@link BlueScanner}
      * that have not been detected fore some time and are considered lost.
-     * Information about lost devices is passed to {@link BlueScanner#blueDeviceScanListeners}.
+     * Information about lost devices is passed to {@link BlueScanner}.
      */
     public void forceCheckNearbyBlueDevices(){
         if(blueScanner!=null){
